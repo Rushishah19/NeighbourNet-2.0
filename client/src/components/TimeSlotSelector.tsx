@@ -10,7 +10,10 @@ interface TimeSlotSelectorProps {
 export function TimeSlotSelector({ worker, onSelectTimeSlot }: TimeSlotSelectorProps) {
   const [selectedDate, setSelectedDate] = useState<string>('');
   
+  // Get all unique dates from worker's timeSlots
   const dates = [...new Set(worker.timeSlots.map(slot => slot.date))];
+
+  // Filter timeSlots based on the selected date
   const timeSlots = worker.timeSlots.filter(slot => slot.date === selectedDate);
 
   return (
@@ -47,7 +50,7 @@ export function TimeSlotSelector({ worker, onSelectTimeSlot }: TimeSlotSelectorP
             Available Time Slots
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {timeSlots.map((slot) => (
+            {timeSlots.map((slot: TimeSlot) => (
               <button
                 key={slot.id}
                 onClick={() => onSelectTimeSlot(slot)}

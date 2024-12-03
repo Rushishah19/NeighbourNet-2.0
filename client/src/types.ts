@@ -7,13 +7,14 @@ export interface Worker {
   hourlyRate: number;
   experience: number;
   location: string;
-  availability: string;
+  availability: string[];
   availabilityNumber: number;
   rating: number;
   completedJobs: number;
   description: string;
   certifications: string[];
-  photo?: String | null,
+  photo?: string | null,
+  timeSlots: string[];
 }
 
 export interface User {

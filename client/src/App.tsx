@@ -7,6 +7,8 @@ import { Admin } from './pages/Admin';
 import { WorkerDashboard } from './pages/WorkerDashboard';
 import { CustomerDashboard } from './pages/CustomerDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { ContactUs } from './pages/ContactUs';
+import { MapPage } from './pages/MapPage'; // Import MapPage component
 import { useStore } from './store';
 
 export function App() {
@@ -18,25 +20,37 @@ export function App() {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/contact" element={<ContactUs />} />
 
+          {/* Admin Routes */}
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
+          {/* Worker Routes */}
           <Route
             path="/worker-dashboard"
-            element={<WorkerDashboard />
-             
+            element={
+              type === 'worker' ? <WorkerDashboard /> : <Navigate to="/login" replace />
             }
           />
 
+          {/* Customer Routes */}
           <Route
             path="/customer-dashboard"
-            element={<CustomerDashboard />}
+            element={
+              type === 'customer' ? <CustomerDashboard /> : <Navigate to="/login" replace />
+            }
           />
 
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/" element={<Navigate to="/admin" replace />} />
+          {/* Map Route */}
+          <Route path="/map" element={<MapPage />} />
+
+          {/* Default Redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </BrowserRouter>

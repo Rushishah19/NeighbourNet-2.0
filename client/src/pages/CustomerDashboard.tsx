@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Star, MapPin, DollarSign, Briefcase, Award, Search, MessageSquare, Wallet } from 'lucide-react';
-import { ContactModal } from '../components/ContactModal';
+import { Star, MapPin, DollarSign, Briefcase, Search, MessageSquare, Wallet, Map, X, PhoneCall, Inbox} from 'lucide-react';
 import { Worker } from '../types';
-import api from '../api/api';
+import api from '../api/api'; 
+import { BookingModal } from '../components/BookingModal';
 
 export function CustomerDashboard() {
   const [workers, setWorkers] = useState<Worker[]>([]);
@@ -14,6 +14,13 @@ export function CustomerDashboard() {
   const [allSkills, setAllSkills] = useState<string[]>([]);
   const [allLocations, setAllLocations] = useState<string[]>([]);
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isBookingModalOpen, setBookingModalOpen] = useState(false);
+
+  const handleBooking = (worker: Worker) => {
+    setSelectedWorker(worker);
+    setBookingModalOpen(true);
+  };
 
   const fetchWorkers = async () => {
     try {
@@ -22,14 +29,19 @@ export function CustomerDashboard() {
           search: searchTerm,
           skill: selectedSkill,
           location: selectedLocation,
-          minRating: selectedRating, // Assuming selectedRating is the minimum rating filter
+          minRating: selectedRating,
         },
       });
+      console.log('Workers API Response:', response.data);
       setWorkers(response.data);
       setFilteredWorkers(response.data);
     } catch (error) {
       console.error('Failed to fetch workers:', error);
     }
+  };
+
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
   };
 
   const fetchFilterData = async () => {
@@ -52,6 +64,19 @@ export function CustomerDashboard() {
     fetchWorkers();
   }, [searchTerm, selectedSkill, selectedLocation, selectedRating]);
 
+  useEffect(() => {
+    if (selectedSkill) {
+      const filtered = workers.filter((worker) =>
+        worker.skills.some((skill) =>
+          skill.toLowerCase().includes(selectedSkill.toLowerCase())
+        )
+      );
+      setFilteredWorkers(filtered);
+    } else {
+      setFilteredWorkers(workers);
+    }
+  }, [selectedSkill, workers]);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Find Skilled Workers</h1>
@@ -66,7 +91,7 @@ export function CustomerDashboard() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search by name or skill..."
+                placeholder="Search by name"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-10"
@@ -79,18 +104,32 @@ export function CustomerDashboard() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Skill
             </label>
-            <select
-              value={selectedSkill}
-              onChange={(e) => setSelectedSkill(e.target.value)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            >
-              <option value="">All Skills</option>
-              {allSkills.map((skill) => (
-                <option key={skill} value={skill}>
-                  {skill}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Enter or search for a skill"
+                value={selectedSkill}
+                onChange={(e) => setSelectedSkill(e.target.value)}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pl-3"
+              />
+              {selectedSkill && (
+                <div className="absolute bg-white border border-gray-300 rounded-md shadow-lg w-full mt-1 max-h-40 overflow-y-auto z-10">
+                  {allSkills
+                    .filter((skill) =>
+                      skill.toLowerCase().includes(selectedSkill.toLowerCase())
+                    )
+                    .map((filteredSkill) => (
+                      <div
+                        key={filteredSkill}
+                        onClick={() => setSelectedSkill(filteredSkill)}
+                        className="p-2 cursor-pointer hover:bg-blue-50"
+                      >
+                        {filteredSkill}
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div>
@@ -150,12 +189,7 @@ export function CustomerDashboard() {
                 ) : (
                   <div className="w-16 h-16 bg-gray-200 rounded-full" />
                 )}
-
-                <h3 className="text-xl font-semibold mt-2">{worker.name}</h3>
-                <div className="flex items-center text-gray-600 mt-1">
-                  <MapPin size={16} className="mr-1" />
-                  {worker.location}
-                </div>
+                <h2 className="text-2xl font-semibold mt-2">{worker.name}</h2>
               </div>
               <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-lg">
                 <Star size={16} className="text-yellow-400 mr-1" />
@@ -164,46 +198,135 @@ export function CustomerDashboard() {
             </div>
 
             <div className="space-y-3">
+              <div className="flex items-center text-gray-600 mt-1">
+                <PhoneCall size={16} className="mr-2" />
+                {worker.phone}
+                <div className="ml-2 mr-2">|</div>
+                <Inbox size={16} className="mr-2" />
+                {worker.email}
+              </div>
+              <div className="flex items-center text-gray-600 mt-1">
+                <MapPin size={16} className="mr-2" />
+                {worker.location ? (
+                  worker.location
+                ) : (
+                  <span className="italic text-gray-400">No Location Provided</span>
+                )}
+              </div>
+
               <div className="flex items-center text-gray-600">
                 <DollarSign size={16} className="mr-2" />
-                ${worker.hourlyRate}/hour
+                {worker.hourlyRate}/ hour
               </div>
+
               <div className="flex items-center text-gray-600">
                 <Briefcase size={16} className="mr-2" />
                 {worker.experience} years experience
               </div>
-              <div className="flex items-center text-gray-600">
-                <Award size={16} className="mr-2" />
-                {worker.completedJobs} jobs completed
+
+              <div className="mt-4">
+                <div className="text-sm font-medium text-gray-700 mb-2">Availability</div>
+                {worker.availability && worker.availability.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {worker.availability.map((availability) => (
+                      <span
+                        key={availability}
+                        className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
+                      >
+                        {availability}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-400 italic">No Availability Provided</div>
+                )}
               </div>
             </div>
 
-            {/* Buttons for Chat and Cart */}
+            <div className="mt-4">
+              <div className="text-sm font-medium text-gray-700 mb-2">Skills</div>
+              {worker.skills && worker.skills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {worker.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-400 italic">No Skills Provided</div>
+              )}
+            </div>
+
+            <div className="mt-4">
+              <div className="text-sm font-medium text-gray-700 mb-2">Certifications</div>
+              {worker.certifications && worker.certifications.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {worker.certifications.map((certification) => (
+                    <span
+                      key={certification}
+                      className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
+                    >
+                      {certification}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-400 italic">No Certifications Provided</div>
+              )}
+            </div>
+
             <div className="mt-6 flex justify-end space-x-4">
               <button
-                onClick={() => setSelectedWorker(worker)}
-                className="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-              >
-                <MessageSquare size={16} className="mr-2" />
-                Chat
-              </button>
-
-              <button
-                onClick={() => setSelectedWorker(worker)}
+                onClick={() => handleBooking(worker)}
                 className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Wallet size={16} className="mr-2" />
-                Cart
+                Book Now
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      {selectedWorker && (
-        <ContactModal
+      <div className="fixed bottom-4 right-4 flex items-center space-x-2">
+        <button
+          onClick={() => window.location.href = '/map'}
+          className="bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition"
+        >
+          <Map size={20} />
+        </button>
+
+        <div className="fixed bottom-4 right-4">
+          <button
+            onClick={toggleChat}
+            className="bg-green-600 text-white rounded-full p-4 shadow-lg hover:bg-green-700"
+          >
+            {isChatOpen ? <X size={20} /> : <MessageSquare size={20} />}
+          </button>
+        </div>
+
+        {isChatOpen && (
+          <div className="fixed bottom-16 right-4 w-80 h-96 bg-white rounded-lg shadow-lg">
+            <iframe
+              src="https://www.chatbase.co/chatbot-iframe/7LSWMe1hKD9ydWyadZWnV"
+              title="Chatbase Chatbot"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              allow="microphone; autoplay"
+            ></iframe>
+          </div>
+        )}
+      </div>
+
+      {isBookingModalOpen && selectedWorker && (
+        <BookingModal
           worker={selectedWorker}
-          onClose={() => setSelectedWorker(null)}
+          onClose={() => setBookingModalOpen(false)}
         />
       )}
 

@@ -8,13 +8,13 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   type: { type: String, default: 'user' },
   photo: { type: String },
-  hourlyRate: { type: String },
+  hourlyRate: { type: Number, min: 0 },
   skills: { type: [String] },
-  experience: { type: String },
+  experience: { type: Number, min: 0 },
   location: { type: String },
-  availability: { type: String },
+  availability: { type: [String] },
   description: { type: String },
-  certifications: { type: [String] },
+  certifications: { type: [String], default: [] },
 });
 
 UserSchema.pre('save', async function (next) {

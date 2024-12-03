@@ -48,16 +48,20 @@ export function Header() {
           <nav className="flex items-center space-x-6">
             {token ? (
               <>
-                <div className="flex items-center space-x-2">
+                <Link to="/customer-dashboard" className="flex items-center space-x-2">
                   <User size={20} className="text-gray-600" />
                   <span className="text-gray-700">{currentUser?.name || 'User'}</span>
-                </div>
+                </Link>
+
                 <button
                   onClick={handleLogout}
                   className="flex items-center text-gray-600 hover:text-gray-900">
                   <LogOut size={20} className="mr-1" />
                   Logout
                 </button>
+                <Link to="/contact" className="text-gray-600 hover:text-gray-900">
+                  Contact Us
+                </Link>
               </>
             ) : (
               <>
@@ -67,9 +71,9 @@ export function Header() {
                 <Link to="/signup" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                   Sign Up
                 </Link>
-                <Link to="/admin" className="bg-cyan-100 text-black px-4 py-2 rounded-lg hover:bg-cyan-400 transition-colors">
+                {/* <Link to="/admin" className="bg-cyan-100 text-black px-4 py-2 rounded-lg hover:bg-cyan-400 transition-colors">
                   Admin Login
-                </Link>
+                </Link> */}
               </>
             )}
           </nav>
